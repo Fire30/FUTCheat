@@ -1,11 +1,81 @@
-import Tkinter as tk
-from Tkinter import *
-import requests
-import BeautifulSoup
+import Tkinter
 import pyxdevkit
+import requests
+import re
+
+
+class MainFrame(Tkinter.Frame):
+
+    def __init__(self, parent):
+        self.parent = parent
+        self.ip_addr = Tkinter.StringVar()
+        self.squad_id = Tkinter.StringVar()
+        self.goalie_name = Tkinter.StringVar()
+        self.card_color = Tkinter.StringVar()
+        self.card_color.set("Don't Override Color")
+        self.cheat_stats_enabled = Tkinter.IntVar()
+        self.do_layout()
+
+    def do_layout(self):
+        self.parent.title('FUTCheat -- Created By Fire30')
+        self.parent.minsize(width=400, height=200)
+        self.parent.maxsize(width=400, height=200)
+
+        layout_args = {
+            'row': 0, 'column': 0, 'pady': (10, 0), 'padx': (10, 0), 'sticky': Tkinter.W}
+
+        Tkinter.Label(text='Console IP:').grid(**layout_args)
+
+        layout_args['column'] = 1
+
+        Tkinter.Entry(textvariable=self.ip_addr).grid(**layout_args)
+
+        layout_args['column'] = 0
+        layout_args['row'] = 1
+
+        Tkinter.Label(text='Futhead Squad ID:').grid(**layout_args)
+
+        layout_args['column'] = 1
+        layout_args['row'] = 1
+        Tkinter.Entry(textvariable=self.squad_id).grid(**layout_args)
+
+        layout_args['column'] = 0
+        layout_args['row'] = 2
+        Tkinter.Label(text='Goalie Name in Current Squad:').grid(**layout_args)
+
+        layout_args['column'] = 1
+        layout_args['row'] = 2
+        Tkinter.Entry(textvariable=self.goalie_name).grid(**layout_args)
+
+        layout_args['column'] = 0
+        layout_args['row'] = 3
+        Tkinter.Label(text='Override Card Color:').grid(**layout_args)
+
+        OPTIONS = ["Nonrare", "Rare", "Inform", "TOTS"]
+        layout_args['column'] = 1
+        layout_args['row'] = 3
+        Tkinter.OptionMenu(root, self.card_color, *OPTIONS).grid(**layout_args)
+
+        layout_args['column'] = 0
+        layout_args['row'] = 4
+        Tkinter.Checkbutton(
+            text="99 Overall Players", variable=self.cheat_stats_enabled).grid(**layout_args)
+
+        layout_args['column'] = 1
+        layout_args['row'] = 4
+        button = Tkinter.Button(
+            root, text="Send Command", command=self.sent_pressed)
+        button.grid(**layout_args)
+
+    def sent_pressed(self):
+        send_command(self.ip_addr.get(), self.squad_id.get(),
+                     self.goalie_name.get(), self.card_color.get(),
+                     self.cheat_stats_enabled.get())
+
 
 def match_class(target):
     target = target.split()
+
     def do_match(tag):
         try:
             classes = dict(tag.attrs)["class"]
@@ -15,79 +85,40 @@ def match_class(target):
         return all(c in classes for c in target)
     return do_match
 
-def displayText():
-    ip_addr =  entryWidget.get().strip()
+
+def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled):
+
     con = pyxdevkit.Console(ip_addr)
 
-    r = requests.get('http://www.futhead.com/15/squads/%s/' % url_entry.get().strip())
+    r = requests.get('http://www.futhead.com/15/squads/%s/' % squad_id)
 
-    soup = BeautifulSoup.BeautifulSoup(r.text)
-    vals = []
-    for x in soup.findAll(match_class("player filled")):
-        for y in x.findAll(match_class("playercard-picture")):
-            c = y.find('img')['src'].split('/')
-            c = int(c[len(c) - 1].split('.')[0])
-            c = '%08X' % c
-            vals.append(c)
+    regex = '<img.+?src="http://futhead.cursecdn.com/static/img/15/players/(.+?)[\"\'].*?>'
+    vals = map(lambda x: int(x.replace('.png', '')), re.findall(regex, r.text))
 
+    print vals
     addr = 0xCDF00000
     length = 0x00100000
 
-    mem = con.get_mem(addr,length)
-    print len(meme)
+    mem = con.get_mem(addr, length)
+    print len(mem)
     hh = mem.find(goalie_name.get().strip())
 
     idx = 0
     print vals
     for x in reversed(vals):
-        if cheat_stats.get():
-            con.set_mem(addr+hh - 0x10,'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00')
-        con.set_mem(addr+hh - 0x14,'0001B265')
-        con.set_mem(addr+hh + 0x91,'13') # country
-        con.set_mem(addr+hh + 0xA3,'%02X' % idx)
-        con.set_mem(addr+hh + 0x9F,'35')
-        con.set_mem(addr+hh - 0x68,x)
-        con.set_mem(addr+hh - 0x64,x)
-        con.set_mem(addr+hh - 0x60,x)
+        if cheat_stats_enabled:
+            con.set_mem(addr + hh - 0x10, 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00')
+        con.set_mem(addr + hh - 0x14, '0001B265')
+        con.set_mem(addr + hh + 0x91, '13')  # country
+        con.set_mem(addr + hh + 0xA3, '%02X' % idx)
+        con.set_mem(addr + hh + 0x9F, '35')
+        con.set_mem(addr + hh - 0x68, x)
+        con.set_mem(addr + hh - 0x64, x)
+        con.set_mem(addr + hh - 0x60, x)
         print idx
         idx += 1
         hh += 0x140
 
-
-root = tk.Tk()
-root.minsize(width=350, height=200)
-root.maxsize(width=350, height=200)
-
-entryLabel = tk.Label(text='Console IP:')
-entryLabel.grid(row=0,column=0,pady=(10,0),padx=(10,10),sticky=W)
-# Create an Entry Widget in textFrame
-entryWidget = tk.Entry()
-entryWidget.grid(row=0,column=1,sticky=W)
-
-entryLabel = tk.Label(text='Futhead Squad ID:')
-entryLabel.grid(row=1,column=0,pady=(10,0),padx=(10,10),sticky=W)
-
-url_entry = tk.Entry()
-url_entry.grid(row=1,column=1,sticky=W)
-
-entryLabel = tk.Label(text='Goalie Name in Current Squad:')
-entryLabel.grid(row=2,column=0,pady=(10,0),padx=(10,10),sticky=W)
-
-goalie_name = tk.Entry()
-goalie_name.grid(row=2,column=1,sticky=W)
-
-entryLabel = tk.Label(text='Override Card Color:')
-entryLabel.grid(row=3,column=0,pady=(10,0),padx=(10,10),sticky=W)
-
-var = StringVar(root)
-var.set("Do Not Override")
-option = OptionMenu(root, var, "Nonrare", "Rare", "Inform", "TOTS")
-option.grid(row=3,column=1,pady=(10,10),padx=(10,10),sticky=W)
-cheat_stats = IntVar()
-c = Checkbutton(text="99 Overall Players",variable=cheat_stats)
-c.grid(row=4,column=0,pady=(10,0),padx=(10,10),sticky=W)
-
-button = Button(root, text="Send Command", command=displayText)
-button.grid(row=4,column=1,padx=(10,10))
-
+root = Tkinter.Tk()
+fram = MainFrame(root)
 root.mainloop()
