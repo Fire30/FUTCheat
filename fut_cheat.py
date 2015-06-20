@@ -93,7 +93,7 @@ def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled
     r = requests.get('http://www.futhead.com/15/squads/%s/' % squad_id)
 
     regex = '<img.+?src="http://futhead.cursecdn.com/static/img/15/players/(.+?)[\"\'].*?>'
-    vals = map(lambda x: int(x.replace('.png', '')), re.findall(regex, r.text))
+    vals = map(lambda x: '%08X' % int(x.replace('.png', '')), re.findall(regex, r.text))
 
     print vals
     addr = 0xCDF00000
@@ -101,7 +101,7 @@ def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled
 
     mem = con.get_mem(addr, length)
     print len(mem)
-    hh = mem.find(goalie_name.get().strip())
+    hh = mem.find(goalie_name)
 
     idx = 0
     print vals
