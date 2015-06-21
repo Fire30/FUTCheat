@@ -26,8 +26,7 @@ class MyDialog():
                                   parent.winfo_rooty()+50))
         self.top.minsize(width=200, height=100)
         self.top.maxsize(width=200, height=100)
-        layout_args = {
-            'row': 0, 'column': 0, 'pady': (20, 0), 'padx': (20, 0)}
+        layout_args = {'row': 0, 'column': 0, 'pady': (20, 0), 'padx': (20, 0)}
         Tkinter.Label(self.top, text=msg).grid(**layout_args)
         layout_args['row'] = 1
         layout_args['pady'] = (10, 0)
@@ -50,11 +49,10 @@ class MainFrame(Tkinter.Frame):
 
     def do_layout(self):
         self.parent.title('FUTCheat -- Created By Fire30')
-        self.parent.minsize(width=400, height=200)
-        self.parent.maxsize(width=400, height=200)
+        self.parent.minsize(width=400, height=275)
+        self.parent.maxsize(width=400, height=275)
 
-        layout_args = {
-            'row': 0, 'column': 0, 'pady': (10, 0), 'padx': (10, 0), 'sticky': Tkinter.W}
+        layout_args = {'row': 0, 'column': 0, 'pady': (10, 0), 'padx': (10, 0), 'sticky': Tkinter.W}
 
         Tkinter.Label(text='Console IP:').grid(**layout_args)
 
@@ -98,6 +96,14 @@ class MainFrame(Tkinter.Frame):
         button = Tkinter.Button(
             root, text="Send Command", command=self.sent_pressed)
         button.grid(**layout_args)
+        layout_args['column'] = 0
+        layout_args['columnspan'] = 3
+        layout_args['row'] = 5
+        instr = 'Note: You must send the command when the teams are choosing jerseys.' \
+                ' If the command is succesful then in team management you will see the' \
+                ' new players or if you back out you will see the new cards. You must do' \
+                ' this every time you are choosing teams.'
+        Tkinter.Label(text=instr,wraplength=350,anchor=Tkinter.W,justify=Tkinter.LEFT).grid(**layout_args)
 
     def sent_pressed(self):
         try:
