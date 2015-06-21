@@ -17,11 +17,12 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-class MyDialog():
+class MessageBox():
     def __init__(self, parent,msg):
 
         self.top = Tkinter.Toplevel(parent)
         self.top.title('')
+        self.top.iconbitmap(resource_path('res/favicon.ico'))
         self.top.geometry("+%d+%d" % (parent.winfo_rootx()+200,
                                   parent.winfo_rooty()+50))
         self.top.minsize(width=200, height=100)
@@ -38,7 +39,6 @@ class MainFrame(Tkinter.Frame):
 
     def __init__(self, parent):
         self.parent = parent
-        print(resource_path('res/favicon.ico'))
         self.parent.iconbitmap(resource_path('res/favicon.ico'))
         self.ip_addr = Tkinter.StringVar()
         self.squad_id = Tkinter.StringVar()
@@ -113,7 +113,7 @@ class MainFrame(Tkinter.Frame):
             msg = 'Command Sent Sucesfully!'
         except:
             msg = 'Unable to Send Command!'
-        d = MyDialog(self.parent,msg)
+        d = MessageBox(self.parent,msg)
         self.parent.wait_window(d.top)
 
 def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled):
