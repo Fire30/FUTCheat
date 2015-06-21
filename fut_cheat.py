@@ -2,9 +2,20 @@ import Tkinter
 import pyxdevkit
 import requests
 import re
+import os
 
 
 RAREFLAGS = {"Nonrare":0,"Rare":1,"Inform":3,"Purple":4,"Blue":5,"Blue with Red Interior":6,"Green":7,"Orange":8,"Pink":9,"Teal":10,"Legend":11,"Light Blue":14}
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 class MyDialog():
     def __init__(self, parent,msg):
@@ -28,6 +39,8 @@ class MainFrame(Tkinter.Frame):
 
     def __init__(self, parent):
         self.parent = parent
+        print(resource_path('res/favicon.ico'))
+        self.parent.iconbitmap(resource_path('res/favicon.ico'))
         self.ip_addr = Tkinter.StringVar()
         self.squad_id = Tkinter.StringVar()
         self.goalie_name = Tkinter.StringVar()
