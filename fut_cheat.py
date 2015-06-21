@@ -6,6 +6,22 @@ import re
 
 RAREFLAGS = {"Nonrare":0,"Rare":1,"Inform":3,"Purple":4,"Blue":5,"Blue with Red Interior":6,"Green":7,"Orange":8,"Pink":9,"Teal":10,"Legend":11,"Light Blue":14}
 
+class MyDialog:
+    def __init__(self, parent,msg):
+
+        self.top = Tkinter.Toplevel(parent)
+        self.top.title('')
+        self.top.minsize(width=200, height=100)
+        self.top.maxsize(width=200, height=100)
+        layout_args = {
+            'row': 0, 'column': 0, 'pady': (20, 0), 'padx': (20, 0)}
+        Tkinter.Label(self.top, text=msg).grid(**layout_args)
+        layout_args['row'] = 1
+        layout_args['pady'] = (10, 0)
+        button = Tkinter.Button(self.top, text="OK",command=self.button_pressed,width=10).grid(**layout_args)
+    def button_pressed(self):
+        self.top.destroy()
+
 class MainFrame(Tkinter.Frame):
 
     def __init__(self, parent):
@@ -69,14 +85,20 @@ class MainFrame(Tkinter.Frame):
         button.grid(**layout_args)
 
     def sent_pressed(self):
-        send_command(self.ip_addr.get(), self.squad_id.get(),
+        try:
+            send_command(self.ip_addr.get(), self.squad_id.get(),
                      self.goalie_name.get(), self.card_color.get(),
                      self.cheat_stats_enabled.get())
+            msg = 'Command Sent Sucesfully!'
+        except:
+            msg = 'Unable to Send Command!'
+        d = MyDialog(self.parent,msg)
+        self.parent.wait_window(d.top)
+
 
 
 def match_class(target):
     target = target.split()
-
     def do_match(tag):
         try:
             classes = dict(tag.attrs)["class"]
@@ -90,7 +112,7 @@ def match_class(target):
 def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled):
 
     con = pyxdevkit.Console(ip_addr)
-
+    con.connect()
     r = requests.get('http://www.futhead.com/15/squads/%s/' % squad_id)
 
     regex = '<img.+?src="http://futhead.cursecdn.com/static/img/15/players/(.+?)[\"\'].*?>'
