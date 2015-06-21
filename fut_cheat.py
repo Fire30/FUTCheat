@@ -6,11 +6,13 @@ import re
 
 RAREFLAGS = {"Nonrare":0,"Rare":1,"Inform":3,"Purple":4,"Blue":5,"Blue with Red Interior":6,"Green":7,"Orange":8,"Pink":9,"Teal":10,"Legend":11,"Light Blue":14}
 
-class MyDialog:
+class MyDialog():
     def __init__(self, parent,msg):
 
         self.top = Tkinter.Toplevel(parent)
         self.top.title('')
+        self.top.geometry("+%d+%d" % (parent.winfo_rootx()+200,
+                                  parent.winfo_rooty()+50))
         self.top.minsize(width=200, height=100)
         self.top.maxsize(width=200, height=100)
         layout_args = {
@@ -30,7 +32,6 @@ class MainFrame(Tkinter.Frame):
         self.squad_id = Tkinter.StringVar()
         self.goalie_name = Tkinter.StringVar()
         self.card_color = Tkinter.StringVar()
-        self.card_color.set("Don't Override Color")
         self.cheat_stats_enabled = Tkinter.IntVar()
         self.do_layout()
 
@@ -69,6 +70,7 @@ class MainFrame(Tkinter.Frame):
         layout_args['row'] = 3
         Tkinter.Label(text='Override Card Color:').grid(**layout_args)
 
+        self.card_color.set("Don't Override Color")
         layout_args['column'] = 1
         layout_args['row'] = 3
         Tkinter.OptionMenu(root, self.card_color, *RAREFLAGS.keys()).grid(**layout_args)
@@ -95,28 +97,13 @@ class MainFrame(Tkinter.Frame):
         d = MyDialog(self.parent,msg)
         self.parent.wait_window(d.top)
 
-
-
-def match_class(target):
-    target = target.split()
-    def do_match(tag):
-        try:
-            classes = dict(tag.attrs)["class"]
-        except KeyError:
-            classes = ""
-        classes = classes.split()
-        return all(c in classes for c in target)
-    return do_match
-
-
 def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled):
-
     con = pyxdevkit.Console(ip_addr)
     con.connect()
     r = requests.get('http://www.futhead.com/15/squads/%s/' % squad_id)
 
     regex = '<img.+?src="http://futhead.cursecdn.com/static/img/15/players/(.+?)[\"\'].*?>'
-    vals = map(lambda x: '%08X' % int(x.replace('.png', '')), re.findall(regex, r.text))
+    vals = map(lambda x: '%08X' % int(x[:-4]), re.findall(regex, r.text))
 
     rareflag_id = RAREFLAGS.get(card_color)
     addr = 0xCDF00000
