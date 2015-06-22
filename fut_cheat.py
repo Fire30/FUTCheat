@@ -1,5 +1,6 @@
 import Tkinter
 import pyxdevkit
+from pyxdevkit.exceptions import XDevkitError
 import requests
 import re
 import os
@@ -111,14 +112,17 @@ class MainFrame(Tkinter.Frame):
                      self.goalie_name.get(), self.card_color.get(),
                      self.cheat_stats_enabled.get())
             msg = 'Command Sent Sucesfully!'
-        except:
+        except XDevkitError:
             msg = 'Unable to Send Command!'
+        except ValueError:
+            msg = 'Could not find goalie or futhead squad!\nMake sure name and squad id are correct!'
         d = MessageBox(self.parent,msg)
         self.parent.wait_window(d.top)
 
 def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled):
     con = pyxdevkit.Console(ip_addr)
     con.connect()
+    print 'connected'
     r = requests.get('http://www.futhead.com/15/squads/%s/' % squad_id)
 
     regex = '<img.+?src="http://futhead.cursecdn.com/static/img/15/players/(.+?)[\"\'].*?>'
@@ -128,9 +132,9 @@ def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled
     addr = 0xCDF00000
     length = 0x00100000
     mem = con.get_mem(addr, length)
-    hh = mem.find(goalie_name)
-
-    idx = 10
+    first_name = goalie_name.split()[0]
+    last_name = goalie_name.split()[1]
+    hh = mem.index(first_name + (0x10 - len(first_name)) * '\x00' + last_name)
     for x in reversed(vals):
         if cheat_stats_enabled:
             con.set_mem(addr + hh - 0x10, 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00')
@@ -142,7 +146,6 @@ def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled
         con.set_mem(addr + hh - 0x68, x)
         con.set_mem(addr + hh - 0x64, x)
         con.set_mem(addr + hh - 0x60, x)
-        idx += 1
         hh += 0x140
 
 root = Tkinter.Tk()
