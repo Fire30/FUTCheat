@@ -127,14 +127,16 @@ def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled
 
     regex = '<img.+?src="http://futhead.cursecdn.com/static/img/15/players/(.+?)[\"\'].*?>'
     vals = map(lambda x: '%08X' % int(x[:-4]), re.findall(regex, r.text))
+    if vals > 11:
+        vals = vals[11:] + vals[:11]
 
     rareflag_id = RAREFLAGS.get(card_color)
     addr = 0xCDF00000
     length = 0x00100000
     mem = con.get_mem(addr, length)
-    first_name = goalie_name.split()[0]
-    last_name = goalie_name.split()[1]
-    hh = mem.index(first_name + (0x10 - len(first_name)) * '\x00' + last_name)
+    first_name = goalie_name.split()[0].lower()
+    last_name = goalie_name.split()[1].lower()
+    hh = mem.lower().index(first_name + (0x10 - len(first_name)) * '\x00' + last_name)
     for x in reversed(vals):
         if cheat_stats_enabled:
             con.set_mem(addr + hh - 0x10, 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00')
