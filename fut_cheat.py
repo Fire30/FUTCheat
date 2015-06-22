@@ -107,36 +107,40 @@ class MainFrame(Tkinter.Frame):
         Tkinter.Label(text=instr,wraplength=350,anchor=Tkinter.W,justify=Tkinter.LEFT).grid(**layout_args)
 
     def sent_pressed(self):
-        try:
-            send_command(self.ip_addr.get(), self.squad_id.get(),
+        msg = send_command(self.ip_addr.get(), self.squad_id.get(),
                      self.goalie_name.get(), self.card_color.get(),
                      self.cheat_stats_enabled.get())
-            msg = 'Command Sent Sucesfully!'
-        except XDevkitError:
-            msg = 'Unable to Send Command!'
-        except ValueError:
-            msg = 'Could not find goalie or futhead squad!\nMake sure name and squad id are correct!'
+
         d = MessageBox(self.parent,msg)
         self.parent.wait_window(d.top)
 
 def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled):
+    if not ip_addr or not squad_id or not goalie_name:
+        return "Error: Not all fields filled out!"
+    try:
+        first_name = goalie_name.split()[0].lower()
+        last_name = goalie_name.split()[1].lower()
+    except:
+        return 'Error: Goalie name not valid!'
     con = pyxdevkit.Console(ip_addr)
-    con.connect()
-    print 'connected'
+    try:
+        con.connect()
+    except:
+        return "Error: Could not connect to Console!"
     r = requests.get('http://www.futhead.com/15/squads/%s/' % squad_id)
-
     regex = '<img.+?src="http://futhead.cursecdn.com/static/img/15/players/(.+?)[\"\'].*?>'
     vals = map(lambda x: '%08X' % int(x[:-4]), re.findall(regex, r.text))
+    if not vals:
+        return 'Error: Squad not valid!'
     if vals > 11:
         vals = vals[11:] + vals[:11]
-
     rareflag_id = RAREFLAGS.get(card_color)
     addr = 0xCDF00000
     length = 0x00100000
     mem = con.get_mem(addr, length)
-    first_name = goalie_name.split()[0].lower()
-    last_name = goalie_name.split()[1].lower()
-    hh = mem.lower().index(first_name + (0x10 - len(first_name)) * '\x00' + last_name)
+    hh = mem.lower().find(first_name + (0x10 - len(first_name)) * '\x00' + last_name)
+    if hh == -1:
+        return 'Error: Could not find goalie name in memory!'
     for x in reversed(vals):
         if cheat_stats_enabled:
             con.set_mem(addr + hh - 0x10, 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00')
@@ -149,7 +153,7 @@ def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled
         con.set_mem(addr + hh - 0x64, x)
         con.set_mem(addr + hh - 0x60, x)
         hh += 0x140
-
+    return 'Success: Comand Sent!'
 root = Tkinter.Tk()
 fram = MainFrame(root)
 root.mainloop()
