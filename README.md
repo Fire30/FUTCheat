@@ -25,6 +25,12 @@ Notes
 * Everytime change your regular squad you should exit and reenter ultimate team
 * The 'Futhead Squad Id is the number at the end of a squad url. For example for http://www.futhead.com/15/squads/34628101/ the id is 34628101
 
+Download
+==================
+* [Windows](https://github.com/Fire30/FUTCheat/releases/download/v1.0.0/FutCheat.exe)
+* [Linux](https://github.com/Fire30/FUTCheat/releases/download/v1.0.0/FutCheat)
+* OSX - I do not have an OS X machine to build the binaries on. If someone does, please contact me!
+
 License
 =================
 MIT License
