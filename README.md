@@ -12,6 +12,7 @@ Features
 Example
 =======================
 These Settings:
+
 ![Settings](http://i.imgur.com/8LH6atn.png)
 
 Turns the team into:
