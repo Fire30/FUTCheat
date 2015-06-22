@@ -1,12 +1,13 @@
 import Tkinter
 import pyxdevkit
-from pyxdevkit.exceptions import XDevkitError
 import requests
 import re
 import os
 
 
-RAREFLAGS = {"Nonrare":0,"Rare":1,"Inform":3,"Purple":4,"Blue":5,"Blue with Red Interior":6,"Green":7,"Orange":8,"Pink":9,"Teal":10,"Legend":11,"Light Blue":14}
+RAREFLAGS = {"Nonrare": 0, "Rare": 1, "Inform": 3, "Purple": 4, "Blue": 5, "Blue with Red Interior":
+             6, "Green": 7, "Orange": 8, "Pink": 9, "Teal": 10, "Legend": 11, "Light Blue": 14}
+
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -18,29 +19,40 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+
 class MessageBox():
-    def __init__(self, parent,msg):
+
+    def __init__(self, parent, msg):
 
         self.top = Tkinter.Toplevel(parent)
         self.top.title('')
-        self.top.iconbitmap(resource_path('res/favicon.ico'))
-        self.top.geometry("+%d+%d" % (parent.winfo_rootx()+200,
-                                  parent.winfo_rooty()+50))
+        try:
+            self.parent.iconbitmap(resource_path('res/favicon.ico'))
+        except:
+            pass
+        self.top.geometry("+%d+%d" % (parent.winfo_rootx() + 200,
+                                      parent.winfo_rooty() + 50))
         self.top.minsize(width=200, height=100)
         self.top.maxsize(width=200, height=100)
         layout_args = {'row': 0, 'column': 0, 'pady': (20, 0), 'padx': (20, 0)}
         Tkinter.Label(self.top, text=msg).grid(**layout_args)
         layout_args['row'] = 1
         layout_args['pady'] = (10, 0)
-        button = Tkinter.Button(self.top, text="OK",command=self.button_pressed,width=10).grid(**layout_args)
+        button = Tkinter.Button(
+            self.top, text="OK", command=self.button_pressed, width=10).grid(**layout_args)
+
     def button_pressed(self):
         self.top.destroy()
+
 
 class MainFrame(Tkinter.Frame):
 
     def __init__(self, parent):
         self.parent = parent
-        self.parent.iconbitmap(resource_path('res/favicon.ico'))
+        try:
+            self.parent.iconbitmap(resource_path('res/favicon.ico'))
+        except:
+            pass
         self.ip_addr = Tkinter.StringVar()
         self.squad_id = Tkinter.StringVar()
         self.goalie_name = Tkinter.StringVar()
@@ -53,7 +65,8 @@ class MainFrame(Tkinter.Frame):
         self.parent.minsize(width=400, height=275)
         self.parent.maxsize(width=400, height=275)
 
-        layout_args = {'row': 0, 'column': 0, 'pady': (10, 0), 'padx': (10, 0), 'sticky': Tkinter.W}
+        layout_args = {'row': 0, 'column': 0, 'pady': (
+            10, 0), 'padx': (10, 0), 'sticky': Tkinter.W}
 
         Tkinter.Label(text='Console IP:').grid(**layout_args)
 
@@ -85,7 +98,8 @@ class MainFrame(Tkinter.Frame):
         self.card_color.set("Don't Override Color")
         layout_args['column'] = 1
         layout_args['row'] = 3
-        Tkinter.OptionMenu(root, self.card_color, *RAREFLAGS.keys()).grid(**layout_args)
+        Tkinter.OptionMenu(
+            root, self.card_color, *RAREFLAGS.keys()).grid(**layout_args)
 
         layout_args['column'] = 0
         layout_args['row'] = 4
@@ -104,15 +118,17 @@ class MainFrame(Tkinter.Frame):
                 ' If the command is succesful then in team management you will see the' \
                 ' new players or if you back out you will see the new cards. You must do' \
                 ' this every time you are choosing teams.'
-        Tkinter.Label(text=instr,wraplength=350,anchor=Tkinter.W,justify=Tkinter.LEFT).grid(**layout_args)
+        Tkinter.Label(text=instr, wraplength=350, anchor=Tkinter.W,
+                      justify=Tkinter.LEFT).grid(**layout_args)
 
     def sent_pressed(self):
         msg = send_command(self.ip_addr.get(), self.squad_id.get(),
-                     self.goalie_name.get(), self.card_color.get(),
-                     self.cheat_stats_enabled.get())
+                           self.goalie_name.get(), self.card_color.get(),
+                           self.cheat_stats_enabled.get())
 
-        d = MessageBox(self.parent,msg)
+        d = MessageBox(self.parent, msg)
         self.parent.wait_window(d.top)
+
 
 def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled):
     if not ip_addr or not squad_id or not goalie_name:
@@ -138,7 +154,8 @@ def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled
     addr = 0xCDF00000
     length = 0x00100000
     mem = con.get_mem(addr, length)
-    hh = mem.lower().find(first_name + (0x10 - len(first_name)) * '\x00' + last_name)
+    hh = mem.lower().find(
+        first_name + (0x10 - len(first_name)) * '\x00' + last_name)
     if hh == -1:
         return 'Error: Could not find goalie name in memory!'
     for x in reversed(vals):
@@ -157,4 +174,3 @@ def send_command(ip_addr, squad_id, goalie_name, card_color, cheat_stats_enabled
 root = Tkinter.Tk()
 fram = MainFrame(root)
 root.mainloop()
-
